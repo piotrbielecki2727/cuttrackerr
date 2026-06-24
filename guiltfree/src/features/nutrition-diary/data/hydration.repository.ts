@@ -29,9 +29,19 @@ export function subscribeToDailyWater(
   onChange: (waterMl: number) => void,
   onError: (error: Error) => void,
 ): Unsubscribe {
+  const startedAt = Date.now();
+
   return onSnapshot(
     getNutritionDayReference(userId, dateKey),
     (snapshot) => {
+      if (process.env.NODE_ENV === "development") {
+        console.info("[Firestore] Nawodnienie", {
+          source: snapshot.metadata.fromCache ? "cache" : "server",
+          dateKey,
+          elapsedMs: Date.now() - startedAt,
+        });
+      }
+
       const waterMl = snapshot.exists()
         ? Number(snapshot.data().waterMl ?? 0)
         : 0;

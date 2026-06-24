@@ -58,6 +58,7 @@ export function subscribeToDiaryEntries(
   onChange: (entries: DiaryEntry[]) => void,
   onError: (error: Error) => void,
 ): Unsubscribe {
+  const startedAt = Date.now();
   const entriesQuery = query(
     getEntriesCollection(userId, dateKey),
     orderBy("createdAt", "asc"),
@@ -66,6 +67,15 @@ export function subscribeToDiaryEntries(
   return onSnapshot(
     entriesQuery,
     (snapshot) => {
+      if (process.env.NODE_ENV === "development") {
+        console.info("[Firestore] Wpisy dziennika", {
+          source: snapshot.metadata.fromCache ? "cache" : "server",
+          dateKey,
+          count: snapshot.size,
+          elapsedMs: Date.now() - startedAt,
+        });
+      }
+
       onChange(
         snapshot.docs.map((entryDocument) =>
           parseDiaryEntry(entryDocument.id, entryDocument.data()),

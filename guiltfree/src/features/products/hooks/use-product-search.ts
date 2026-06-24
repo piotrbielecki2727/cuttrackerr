@@ -11,6 +11,8 @@ import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import {
   findProducts,
   findProductsByIds,
+  findProductsByIdsFromCache,
+  findProductsFromCache,
 } from "../data/product.repository";
 import {
   ALL_PRODUCT_CATEGORIES,
@@ -124,15 +126,42 @@ export function useProductSearch({
       }));
 
       try {
+        const findParams = {
+          searchText: combinedSearchText,
+          category:
+            category === ALL_PRODUCT_CATEGORIES
+              ? undefined
+              : category,
+        };
+
+        try {
+          const cachedSourceProducts = favoritesOnly
+            ? await findProductsByIdsFromCache(favoriteProductIds)
+            : await findProductsFromCache(findParams);
+
+          const cachedProducts = filterProductsLocally(
+            cachedSourceProducts,
+            {
+              searchQuery: debouncedSearchQuery,
+              brandQuery: debouncedBrandQuery,
+              category,
+            },
+          );
+
+          if (isCurrentRequest && cachedProducts.length > 0) {
+            setState({
+              products: cachedProducts,
+              isLoading: true,
+              error: null,
+            });
+          }
+        } catch {
+          // Brak wpisu w cache jest normalny przy pierwszym uruchomieniu.
+        }
+
         const sourceProducts = favoritesOnly
           ? await findProductsByIds(favoriteProductIds)
-          : await findProducts({
-              searchText: combinedSearchText,
-              category:
-                category === ALL_PRODUCT_CATEGORIES
-                  ? undefined
-                  : category,
-            });
+          : await findProducts(findParams);
 
         const products = filterProductsLocally(sourceProducts, {
           searchQuery: debouncedSearchQuery,

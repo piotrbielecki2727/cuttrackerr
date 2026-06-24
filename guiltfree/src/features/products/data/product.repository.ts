@@ -3,6 +3,7 @@ import {
   doc,
   documentId,
   getDocs,
+  getDocsFromCache,
   limit,
   orderBy,
   query as createFirestoreQuery,
@@ -125,6 +126,25 @@ export async function createProduct(
 export async function findProducts(
   params: FindProductsParams = {},
 ): Promise<Product[]> {
+  const productsQuery = createProductsQuery(params);
+  const snapshot = await getDocs(productsQuery);
+
+  return snapshot.docs.map((productDocument) =>
+    parseProductDocument(productDocument.id, productDocument.data()),
+  );
+}
+
+export async function findProductsFromCache(
+  params: FindProductsParams = {},
+): Promise<Product[]> {
+  const snapshot = await getDocsFromCache(createProductsQuery(params));
+
+  return snapshot.docs.map((productDocument) =>
+    parseProductDocument(productDocument.id, productDocument.data()),
+  );
+}
+
+function createProductsQuery(params: FindProductsParams) {
   const searchToken = getMostSelectiveSearchTerm(params.searchText ?? "");
 
   const queryConstraints: QueryConstraint[] = [];
@@ -144,20 +164,27 @@ export async function findProducts(
     limit(params.limitCount ?? PRODUCT_SEARCH_RESULT_LIMIT),
   );
 
-  const productsQuery = createFirestoreQuery(
+  return createFirestoreQuery(
     collection(db, PRODUCTS_COLLECTION),
     ...queryConstraints,
-  );
-
-  const snapshot = await getDocs(productsQuery);
-
-  return snapshot.docs.map((productDocument) =>
-    parseProductDocument(productDocument.id, productDocument.data()),
   );
 }
 
 export async function findProductsByIds(
   productIds: ProductId[],
+): Promise<Product[]> {
+  return findProductsByIdsUsing(productIds, getDocs);
+}
+
+export async function findProductsByIdsFromCache(
+  productIds: ProductId[],
+): Promise<Product[]> {
+  return findProductsByIdsUsing(productIds, getDocsFromCache);
+}
+
+async function findProductsByIdsUsing(
+  productIds: ProductId[],
+  loadQuery: typeof getDocs,
 ): Promise<Product[]> {
   const uniqueProductIds = [...new Set(productIds)];
 
@@ -177,7 +204,7 @@ export async function findProductsByIds(
 
   const snapshots = await Promise.all(
     idChunks.map((ids) =>
-      getDocs(
+      loadQuery(
         createFirestoreQuery(
           productsCollectionReference,
           where(documentId(), "in", ids),

@@ -18,7 +18,10 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { findProducts } from "@/features/products/data/product.repository";
+import {
+  findProducts,
+  findProductsFromCache,
+} from "@/features/products/data/product.repository";
 import type { Product } from "@/features/products/domain/product.types";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { cn } from "@/lib/utils";
@@ -71,6 +74,19 @@ export function ProductPickerSheet({
       setError(null);
 
       try {
+        try {
+          const cachedProducts = await findProductsFromCache({
+            searchText: debouncedSearchQuery,
+            limitCount: 20,
+          });
+
+          if (isCurrentRequest && cachedProducts.length > 0) {
+            setProducts(cachedProducts);
+          }
+        } catch {
+          // Pierwsze uruchomienie może nie mieć jeszcze danych w cache.
+        }
+
         const nextProducts = await findProducts({
           searchText: debouncedSearchQuery,
           limitCount: 20,
@@ -173,7 +189,7 @@ export function ProductPickerSheet({
             </div>
           </div>
 
-          {isLoading && (
+          {isLoading && products.length === 0 && (
             <div className="flex items-center justify-center gap-2 py-12 text-sm text-muted-foreground">
               <Loader2 className="size-4 animate-spin" />
               Szukam produktów...
@@ -190,7 +206,7 @@ export function ProductPickerSheet({
             </div>
           )}
 
-          {!isLoading && products.length > 0 && (
+          {products.length > 0 && (
             <div className="space-y-2 pb-4">
               {products.map((product) => {
                 const isSelected = selectedProduct?.id === product.id;
@@ -228,6 +244,13 @@ export function ProductPickerSheet({
                   </button>
                 );
               })}
+            </div>
+          )}
+
+          {isLoading && products.length > 0 && (
+            <div className="sticky bottom-2 mx-auto mb-3 flex w-fit items-center gap-2 rounded-full border bg-popover/95 px-3 py-1.5 text-xs text-muted-foreground shadow-sm backdrop-blur">
+              <Loader2 className="size-3 animate-spin" />
+              Aktualizuję wyniki...
             </div>
           )}
         </div>

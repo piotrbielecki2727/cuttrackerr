@@ -21,6 +21,7 @@ export function subscribeToFavoriteProductIds(
   onChange: (productIds: ProductId[]) => void,
   onError: (error: Error) => void,
 ): Unsubscribe {
+  const startedAt = Date.now();
   const preferencesQuery = query(
     collection(
       db,
@@ -34,6 +35,14 @@ export function subscribeToFavoriteProductIds(
   return onSnapshot(
     preferencesQuery,
     (snapshot) => {
+      if (process.env.NODE_ENV === "development") {
+        console.info("[Firestore] Ulubione produkty", {
+          source: snapshot.metadata.fromCache ? "cache" : "server",
+          count: snapshot.size,
+          elapsedMs: Date.now() - startedAt,
+        });
+      }
+
       onChange(snapshot.docs.map((preferenceDocument) => preferenceDocument.id));
     },
     onError,

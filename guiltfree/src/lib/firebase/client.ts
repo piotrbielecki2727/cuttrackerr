@@ -1,6 +1,13 @@
 import { getApp, getApps, initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import {
+  getFirestore,
+  initializeFirestore,
+  memoryLocalCache,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+  type Firestore,
+} from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -34,4 +41,30 @@ const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
 
-export const db = getFirestore(app);
+type FirebaseGlobal = typeof globalThis & {
+  __guiltfreeFirestore?: Firestore;
+};
+
+const firebaseGlobal = globalThis as FirebaseGlobal;
+
+function createFirestore(): Firestore {
+  if (typeof window === "undefined") {
+    return getFirestore(app);
+  }
+
+  const supportsPersistentCache = "indexedDB" in window;
+
+  return initializeFirestore(app, {
+    experimentalAutoDetectLongPolling: true,
+    localCache: supportsPersistentCache
+      ? persistentLocalCache({
+          tabManager: persistentMultipleTabManager(),
+        })
+      : memoryLocalCache(),
+  });
+}
+
+export const db =
+  firebaseGlobal.__guiltfreeFirestore ?? createFirestore();
+
+firebaseGlobal.__guiltfreeFirestore = db;

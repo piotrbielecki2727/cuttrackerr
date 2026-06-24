@@ -33,9 +33,18 @@ export function subscribeToNutritionGoals(
   onChange: (goals: NutritionGoals) => void,
   onError: (error: Error) => void,
 ): Unsubscribe {
+  const startedAt = Date.now();
+
   return onSnapshot(
     getNutritionSettingsReference(userId),
     (snapshot) => {
+      if (process.env.NODE_ENV === "development") {
+        console.info("[Firestore] Cele żywieniowe", {
+          source: snapshot.metadata.fromCache ? "cache" : "server",
+          elapsedMs: Date.now() - startedAt,
+        });
+      }
+
       if (!snapshot.exists()) {
         onChange(EMPTY_NUTRITION_GOALS);
         return;
