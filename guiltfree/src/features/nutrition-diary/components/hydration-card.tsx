@@ -35,6 +35,7 @@ export function HydrationCard({
   waterGoalMl,
   isLoading,
 }: HydrationCardProps) {
+  const [displayedWaterMl, setDisplayedWaterMl] = useState(waterMl);
   const [customAmount, setCustomAmount] = useState("");
   const [pendingAmount, setPendingAmount] = useState<number | null>(null);
   const [isResetting, setIsResetting] = useState(false);
@@ -50,7 +51,13 @@ export function HydrationCard({
     setError(null);
 
     try {
-      await addDailyWater(userId, dateKey, amountMl);
+      const nextWaterMl = await addDailyWater(
+        userId,
+        dateKey,
+        amountMl,
+      );
+
+      setDisplayedWaterMl(nextWaterMl);
       setCustomAmount("");
     } catch {
       setError("Nie udało się zapisać wody.");
@@ -69,6 +76,7 @@ export function HydrationCard({
 
     try {
       await resetDailyWater(userId, dateKey);
+      setDisplayedWaterMl(0);
     } catch {
       setError("Nie udało się wyzerować wody.");
     } finally {
@@ -91,12 +99,12 @@ export function HydrationCard({
                   <p className="mt-1 text-sm text-muted-foreground">
                     {isLoading
                       ? "Pobieranie..."
-                      : `${waterMl.toLocaleString("pl-PL")} ml wypite dzisiaj`}
+                      : `${displayedWaterMl.toLocaleString("pl-PL")} ml wypite dzisiaj`}
                   </p>
                 </div>
               </div>
 
-              {waterMl > 0 && (
+              {displayedWaterMl > 0 && (
                 <Button
                   aria-label="Wyzeruj wodę"
                   disabled={isResetting}
@@ -171,7 +179,7 @@ export function HydrationCard({
               goal={waterGoalMl}
               label="Woda"
               unit="ml"
-              value={waterMl}
+              value={displayedWaterMl}
             />
           )}
         </div>

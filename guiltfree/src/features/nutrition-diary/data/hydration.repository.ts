@@ -46,10 +46,10 @@ export async function addDailyWater(
   userId: string,
   dateKey: string,
   amountMl: number,
-): Promise<void> {
+): Promise<number> {
   const dayReference = getNutritionDayReference(userId, dateKey);
 
-  await runTransaction(db, async (transaction) => {
+  return runTransaction(db, async (transaction) => {
     const snapshot = await transaction.get(dayReference);
     const currentWaterMl = snapshot.exists()
       ? Number(snapshot.data().waterMl ?? 0)
@@ -72,6 +72,8 @@ export async function addDailyWater(
       },
       { merge: true },
     );
+
+    return nextWaterMl;
   });
 }
 

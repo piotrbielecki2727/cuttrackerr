@@ -259,6 +259,7 @@ export function NutritionDiaryDashboard() {
         <HydrationCard
           dateKey={dateKey}
           isLoading={isWaterLoading}
+          key={`${dateKey}:${waterMl}`}
           userId={user.uid}
           waterGoalMl={goals.waterMl}
           waterMl={waterMl}
