@@ -1,0 +1,69 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    match /products/{productId} {
+      // Każdy zalogowany użytkownik może czytać wspólną bazę.
+      allow read: if isSignedIn();
+
+      // Każdy zalogowany użytkownik może dodać produkt,
+      // ale createdBy musi być jego własnym uid.
+      allow create: if isSignedIn()
+        && request.resource.data.createdBy == request.auth.uid;
+
+      // Tylko autor produktu może go później edytować lub usunąć.
+      allow update, delete: if isSignedIn()
+        && resource.data.createdBy == request.auth.uid;
+    }
+
+    match /users/{userId}/productPreferences/{productId} {
+      // Ulubione są prywatne dla każdego użytkownika.
+      allow read, create, update, delete: if isSignedIn()
+        && request.auth.uid == userId;
+    }
+
+    match /users/{userId}/settings/nutrition {
+      allow read: if isSignedIn()
+        && request.auth.uid == userId;
+
+      allow create, update: if isSignedIn()
+        && request.auth.uid == userId
+        && request.resource.data.userId == userId;
+    }
+
+    match /users/{userId}/nutritionDays/{dateKey} {
+      allow read: if isSignedIn()
+        && request.auth.uid == userId;
+
+      allow create, update: if isSignedIn()
+        && request.auth.uid == userId
+        && request.resource.data.userId == userId
+        && request.resource.data.dateKey == dateKey
+        && request.resource.data.waterMl is number
+        && request.resource.data.waterMl >= 0
+        && request.resource.data.waterMl <= 50000;
+    }
+
+    match /users/{userId}/nutritionDays/{dateKey}/entries/{entryId} {
+      allow read, delete: if isSignedIn()
+        && request.auth.uid == userId;
+
+      allow create: if isSignedIn()
+        && request.auth.uid == userId
+        && request.resource.data.userId == userId
+        && request.resource.data.dateKey == dateKey;
+
+      allow update: if isSignedIn()
+        && request.auth.uid == userId
+        && request.resource.data.userId == resource.data.userId
+        && request.resource.data.dateKey == resource.data.dateKey
+        && request.resource.data.mealType == resource.data.mealType
+        && request.resource.data.product == resource.data.product
+        && request.resource.data.unit == resource.data.unit;
+    }
+  }
+}
