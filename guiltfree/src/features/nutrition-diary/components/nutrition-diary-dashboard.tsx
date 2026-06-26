@@ -19,6 +19,7 @@ import {
   Calculator,
   ChevronLeft,
   ChevronRight,
+  Menu,
   LogOut,
   PackageOpen,
   Plus,
@@ -32,6 +33,14 @@ import { useAuth } from "@/components/providers/auth-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { auth } from "@/lib/firebase/client";
 import { cn } from "@/lib/utils";
 
@@ -56,6 +65,39 @@ export function NutritionDiaryDashboard() {
   const [selectedMealType, setSelectedMealType] =
     useState<MealType | null>(null);
   const [areSettingsOpen, setAreSettingsOpen] = useState(false);
+
+  const navItems = [
+    {
+      href: "/dashboard",
+      label: "Dashboard",
+      icon: CalendarDays,
+    },
+    {
+      href: "/products",
+      label: "Produkty",
+      icon: PackageOpen,
+    },
+    {
+      href: "/products/new",
+      label: "Dodaj produkt",
+      icon: Plus,
+    },
+    {
+      href: "/calculator",
+      label: "Kalkulator",
+      icon: Calculator,
+    },
+    {
+      href: "/measurements",
+      label: "Pomiary",
+      icon: Ruler,
+    },
+    {
+      href: "/prepared-meals",
+      label: "Gotowe posiłki",
+      icon: Sandwich,
+    },
+  ] as const;
 
   const dateKey = format(selectedDate, "yyyy-MM-dd");
   const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 });
@@ -119,6 +161,53 @@ export function NutritionDiaryDashboard() {
               {user.displayName || user.email}
             </p>
           </div>
+
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button
+                aria-label="Otwórz menu"
+                className="sm:hidden"
+                size="icon"
+                variant="ghost"
+              >
+                <Menu className="size-5" />
+              </Button>
+            </SheetTrigger>
+
+            <SheetContent className="w-[320px] gap-0 p-0" showCloseButton>
+              <SheetHeader className="border-b border-border/60 px-4 py-4">
+                <SheetTitle>GuiltFree</SheetTitle>
+                <p className="text-sm text-muted-foreground">
+                  Nawigacja i szybkie akcje
+                </p>
+              </SheetHeader>
+
+              <div className="flex flex-1 flex-col gap-2 px-4 py-4">
+                {navItems.map(({ href, label, icon: Icon }) => (
+                  <SheetClose asChild key={href}>
+                    <Button asChild variant="ghost" className="justify-start">
+                      <Link href={href}>
+                        <Icon className="size-4" />
+                        {label}
+                      </Link>
+                    </Button>
+                  </SheetClose>
+                ))}
+              </div>
+
+              <div className="mt-auto border-t border-border/60 px-4 py-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-medium">Motyw</p>
+                    <p className="text-xs text-muted-foreground">
+                      Przełącz jasny / ciemny
+                    </p>
+                  </div>
+                  <ThemeToggle />
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
 
           <Button asChild className="hidden sm:inline-flex" variant="outline">
             <Link href="/products">
