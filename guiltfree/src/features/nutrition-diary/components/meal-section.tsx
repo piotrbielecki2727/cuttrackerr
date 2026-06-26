@@ -3,6 +3,7 @@
 import { useState, type ComponentType } from "react";
 import {
   Apple,
+  ChevronDown,
   Check,
   Coffee,
   Loader2,
@@ -94,23 +95,49 @@ function DiaryEntryRow({
   userId,
   dateKey,
 }: DiaryEntryRowProps) {
-  const [amount, setAmount] = useState(String(entry.amount));
+  const [amount, setAmount] = useState(
+    entry.entryType === "product" ? String(entry.amount) : "",
+  );
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const parsedAmount = Number(amount.replace(",", "."));
   const hasChanged =
-    Number.isFinite(parsedAmount) && parsedAmount !== entry.amount;
+    entry.entryType === "product" &&
+    Number.isFinite(parsedAmount) &&
+    parsedAmount !== entry.amount;
   const previewEntry = {
     ...entry,
-    amount:
-      Number.isFinite(parsedAmount) && parsedAmount > 0
-        ? parsedAmount
-        : entry.amount,
+    ...(entry.entryType === "product"
+      ? {
+          amount:
+            Number.isFinite(parsedAmount) && parsedAmount > 0
+              ? parsedAmount
+              : entry.amount,
+        }
+      : {}),
   };
   const nutrition = calculateEntryNutrition(previewEntry);
+  const entryName =
+    entry.entryType === "prepared_meal"
+      ? entry.preparedMealName
+      : entry.product.name;
+  const entryDescription =
+    entry.entryType === "prepared_meal"
+      ? `${entry.items.length} składników · ${formatNutrition(
+          nutrition.calories,
+          true,
+        )} kcal`
+      : `${entry.product.brand || "Bez marki"} · ${formatNutrition(
+          nutrition.calories,
+          true,
+        )} kcal`;
 
   async function handleSave() {
+    if (entry.entryType !== "product") {
+      return;
+    }
+
     if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
       setAmount(String(entry.amount));
       return;
@@ -142,33 +169,34 @@ function DiaryEntryRow({
     <div className="border-t px-4 py-3 first:border-t-0">
       <div className="flex items-start gap-3">
         <div className="min-w-0 flex-1">
-          <p className="truncate font-medium">{entry.product.name}</p>
+          <p className="truncate font-medium">{entryName}</p>
           <p className="mt-0.5 truncate text-xs text-muted-foreground">
-            {entry.product.brand || "Bez marki"} ·{" "}
-            {formatNutrition(nutrition.calories, true)} kcal
+            {entryDescription}
           </p>
         </div>
 
-        <div className="relative w-24 shrink-0">
-          <Input
-            aria-label={`Ilość produktu ${entry.product.name}`}
-            className="h-10 pr-8 text-right tabular-nums"
-            inputMode="decimal"
-            min="0.1"
-            onBlur={() => {
-              if (!hasChanged) {
-                setAmount(String(entry.amount));
-              }
-            }}
-            onChange={(event) => setAmount(event.target.value)}
-            step="0.1"
-            type="number"
-            value={amount}
-          />
-          <span className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-xs text-muted-foreground">
-            {entry.unit}
-          </span>
-        </div>
+        {entry.entryType === "product" && (
+          <div className="relative w-24 shrink-0">
+            <Input
+              aria-label={`Ilość produktu ${entry.product.name}`}
+              className="h-10 pr-8 text-right tabular-nums"
+              inputMode="decimal"
+              min="0.1"
+              onBlur={() => {
+                if (!hasChanged) {
+                  setAmount(String(entry.amount));
+                }
+              }}
+              onChange={(event) => setAmount(event.target.value)}
+              step="0.1"
+              type="number"
+              value={amount}
+            />
+            <span className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-xs text-muted-foreground">
+              {entry.unit}
+            </span>
+          </div>
+        )}
 
         {hasChanged ? (
           <Button
@@ -187,7 +215,7 @@ function DiaryEntryRow({
           </Button>
         ) : (
           <Button
-            aria-label={`Usuń ${entry.product.name}`}
+            aria-label={`Usuń ${entryName}`}
             className="size-10 shrink-0 text-muted-foreground hover:text-destructive"
             disabled={isDeleting}
             onClick={handleDelete}
@@ -229,40 +257,76 @@ export function MealSection({
 }: MealSectionProps) {
   const Icon = MEAL_ICONS[mealType];
   const summary = calculateEntriesNutrition(entries);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
     <Card className="overflow-hidden gap-0 border-border/80 py-0 shadow-sm">
       <CardContent className="p-0">
-        <div className="flex items-center gap-3 p-4">
-          <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
-            <Icon className="size-5" />
+        <div className="flex items-center gap-3 p-4 pb-3">
+          <div className="flex min-w-0 flex-1 items-center gap-3">
+            <div className="grid size-9 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+              <Icon className="size-4" />
+            </div>
+
+            <div className="min-w-0">
+              <h2 className="truncate font-semibold leading-tight">
+                {MEAL_TYPE_LABELS[mealType]}
+              </h2>
+              <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                {entries.length === 0
+                  ? "Brak produktów"
+                  : `${entries.length} ${
+                      entries.length === 1 ? "produkt" : "produkty"
+                    }`}
+              </p>
+            </div>
           </div>
 
-          <div className="min-w-0 flex-1">
-            <h2 className="font-semibold">{MEAL_TYPE_LABELS[mealType]}</h2>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              {entries.length === 0
-                ? "Brak produktów"
-                : `${entries.length} ${
-                    entries.length === 1 ? "produkt" : "produkty"
-                  }`}
-            </p>
-          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <Button
+              aria-label={`Dodaj produkt: ${MEAL_TYPE_LABELS[mealType]}`}
+              className="h-9 shrink-0 px-3"
+              onClick={() => onAdd(mealType)}
+              size="sm"
+              variant="outline"
+            >
+              <Plus className="size-4" />
+              <span className="hidden sm:inline">Dodaj</span>
+            </Button>
 
-          <Button
-            aria-label={`Dodaj produkt: ${MEAL_TYPE_LABELS[mealType]}`}
-            className="min-h-11 shrink-0"
-            onClick={() => onAdd(mealType)}
-            size="sm"
-            variant="outline"
-          >
-            <Plus className="size-4" />
-            <span className="hidden sm:inline">Dodaj</span>
-          </Button>
+            <Button
+              aria-expanded={!isCollapsed}
+              aria-label={
+                isCollapsed
+                  ? `Rozwiń ${MEAL_TYPE_LABELS[mealType]}`
+                  : `Zwiń ${MEAL_TYPE_LABELS[mealType]}`
+              }
+              className="size-9 shrink-0"
+              onClick={() => setIsCollapsed((current) => !current)}
+              size="icon"
+              variant="ghost"
+            >
+              <ChevronDown
+                className={cn(
+                  "size-4 transition-transform",
+                  isCollapsed && "-rotate-90",
+                )}
+              />
+            </Button>
+          </div>
         </div>
 
-        {entries.length > 0 && (
-          <div className="border-y bg-background">
+        <div
+          className={cn(
+            "border-t px-4 py-3",
+            isCollapsed ? "bg-muted/20" : "bg-muted/30",
+          )}
+        >
+          <CompactSummary summary={summary} />
+        </div>
+
+        {!isCollapsed && entries.length > 0 && (
+          <div className="border-t bg-background">
             {entries.map((entry) => (
               <DiaryEntryRow
                 dateKey={dateKey}
@@ -273,15 +337,6 @@ export function MealSection({
             ))}
           </div>
         )}
-
-        <div
-          className={cn(
-            "px-4 py-3",
-            entries.length === 0 ? "border-t bg-muted/20" : "bg-muted/30",
-          )}
-        >
-          <CompactSummary summary={summary} />
-        </div>
       </CardContent>
     </Card>
   );

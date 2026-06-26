@@ -4,6 +4,7 @@ export interface NutritionGoals {
   carbohydrates: number | null;
   fats: number | null;
   waterMl: number | null;
+  steps: number | null;
 }
 
 export const EMPTY_NUTRITION_GOALS: NutritionGoals = {
@@ -12,4 +13,5 @@ export const EMPTY_NUTRITION_GOALS: NutritionGoals = {
   carbohydrates: null,
   fats: null,
   waterMl: null,
+  steps: null,
 };

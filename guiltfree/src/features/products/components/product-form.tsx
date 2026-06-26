@@ -49,30 +49,32 @@ import {
   type NutritionBasis,
 } from "../domain/product.types";
 
-const DEFAULT_FORM_VALUES: DefaultValues<ProductFormValues> = {
-  name: "",
-  brand: "",
-  category: undefined,
-  nutritionBasis: "per_100g",
-  note: "",
-  isFavorite: false,
-  nutritionPer100: {
-    calories: undefined,
-    protein: undefined,
-    carbohydrates: undefined,
-    fats: undefined,
-    sugars: undefined,
-    saturatedFats: undefined,
-    fiber: undefined,
-    salt: undefined,
-  },
-};
+function createDefaultFormValues(): DefaultValues<ProductFormValues> {
+  return {
+    name: "",
+    brand: "",
+    category: undefined,
+    nutritionBasis: "per_100g",
+    note: "",
+    isFavorite: false,
+    nutritionPer100: {
+      calories: undefined,
+      protein: undefined,
+      carbohydrates: undefined,
+      fats: undefined,
+      sugars: undefined,
+      saturatedFats: undefined,
+      fiber: undefined,
+      salt: undefined,
+    },
+  };
+}
 
-function parseRequiredDecimal(value: unknown): number {
+function parseRequiredDecimal(value: unknown): number | undefined {
   const normalizedValue = String(value).trim().replace(",", ".");
 
   if (!normalizedValue) {
-    return Number.NaN;
+    return undefined;
   }
 
   const parsedValue = Number(normalizedValue);
@@ -200,7 +202,7 @@ function NutritionInput({
           min="0"
           placeholder="0"
           step="0.1"
-          type="number"
+          type="text"
         />
 
         <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-muted-foreground">
@@ -256,6 +258,7 @@ export function ProductForm() {
   const [lastSavedProductName, setLastSavedProductName] = useState<
     string | null
   >(null);
+  const [formResetKey, setFormResetKey] = useState(0);
 
   const {
     control,
@@ -265,7 +268,7 @@ export function ProductForm() {
     setValue,
     formState: { errors, isSubmitting },
   } = useForm<ProductFormValues>({
-    defaultValues: DEFAULT_FORM_VALUES,
+    defaultValues: createDefaultFormValues(),
     mode: "onBlur",
     reValidateMode: "onChange",
     resolver: zodResolver(productFormSchema),
@@ -300,7 +303,8 @@ export function ProductForm() {
 
       setLastSavedProductName(command.product.name);
       setIsAdvancedNutritionVisible(false);
-      reset(DEFAULT_FORM_VALUES);
+      reset(createDefaultFormValues());
+      setFormResetKey((currentKey) => currentKey + 1);
     } catch (error) {
       console.error("Product creation failed:", error);
       setSubmitError(getCreateProductErrorMessage(error));
@@ -345,7 +349,12 @@ export function ProductForm() {
           </div>
         </div>
 
-        <form id="new-product-form" onSubmit={handleSubmit(onSubmit)}>
+        <form
+          id="new-product-form"
+          key={formResetKey}
+          noValidate
+          onSubmit={handleSubmit(onSubmit)}
+        >
           <div className="grid gap-6 lg:grid-cols-12">
             <div className="space-y-6 lg:col-span-8">
               {lastSavedProductName && (
@@ -449,11 +458,13 @@ export function ProductForm() {
                             id="category"
                             name={field.name}
                             onBlur={field.onBlur}
-                            onChange={field.onChange}
+                            onChange={(event) => {
+                              field.onChange(event.target.value || undefined);
+                            }}
                             ref={field.ref}
                             value={field.value ?? ""}
                           >
-                            <option disabled value="">
+                            <option value="">
                               Wybierz kategorię
                             </option>
                             {PRODUCT_CATEGORIES.map((category) => (

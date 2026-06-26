@@ -1,12 +1,12 @@
 import { AuthGuard } from "@/components/auth/auth-guard";
 import { AppNavbar } from "@/components/layout/app-navbar";
-import { ProductsBrowser } from "@/features/products/components/products-browser";
+import { CalorieCalculatorPageContent } from "@/features/calorie-calculator/components/calorie-calculator-page-content";
 
-export default function ProductsPage() {
+export default function CalculatorPage() {
   return (
     <AuthGuard>
       <AppNavbar backHref="/dashboard" backLabel="Wróć do dashboardu" />
-      <ProductsBrowser />
+      <CalorieCalculatorPageContent />
     </AuthGuard>
   );
 }

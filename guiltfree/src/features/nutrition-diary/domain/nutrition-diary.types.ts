@@ -30,8 +30,15 @@ export interface DiaryProductSnapshot {
   nutritionPer100: NutritionPer100;
 }
 
-export interface DiaryEntry {
+export interface PreparedMealEntryItem {
+  product: DiaryProductSnapshot;
+  amount: number;
+  unit: PortionUnit;
+}
+
+export interface ProductDiaryEntry {
   id: string;
+  entryType: "product";
   userId: UserId;
   dateKey: string;
   mealType: MealType;
@@ -41,3 +48,18 @@ export interface DiaryEntry {
   createdAt: Timestamp | null;
   updatedAt: Timestamp | null;
 }
+
+export interface PreparedMealDiaryEntry {
+  id: string;
+  entryType: "prepared_meal";
+  userId: UserId;
+  dateKey: string;
+  mealType: MealType;
+  preparedMealId: string;
+  preparedMealName: string;
+  items: PreparedMealEntryItem[];
+  createdAt: Timestamp | null;
+  updatedAt: Timestamp | null;
+}
+
+export type DiaryEntry = ProductDiaryEntry | PreparedMealDiaryEntry;

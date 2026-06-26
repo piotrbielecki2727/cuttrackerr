@@ -1,12 +1,12 @@
 import { AuthGuard } from "@/components/auth/auth-guard";
 import { AppNavbar } from "@/components/layout/app-navbar";
-import { ProductsBrowser } from "@/features/products/components/products-browser";
+import { BodyMeasurementsPageContent } from "@/features/body-measurements/components/body-measurements-page-content";
 
-export default function ProductsPage() {
+export default function MeasurementsPage() {
   return (
     <AuthGuard>
       <AppNavbar backHref="/dashboard" backLabel="Wróć do dashboardu" />
-      <ProductsBrowser />
+      <BodyMeasurementsPageContent />
     </AuthGuard>
   );
 }

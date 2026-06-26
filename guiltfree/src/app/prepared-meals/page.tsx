@@ -1,12 +1,12 @@
 import { AuthGuard } from "@/components/auth/auth-guard";
 import { AppNavbar } from "@/components/layout/app-navbar";
-import { ProductsBrowser } from "@/features/products/components/products-browser";
+import { PreparedMealsPageContent } from "@/features/nutrition-diary/components/prepared-meals-page-content";
 
-export default function ProductsPage() {
+export default function PreparedMealsPage() {
   return (
     <AuthGuard>
       <AppNavbar backHref="/dashboard" backLabel="Wróć do dashboardu" />
-      <ProductsBrowser />
+      <PreparedMealsPageContent />
     </AuthGuard>
   );
 }

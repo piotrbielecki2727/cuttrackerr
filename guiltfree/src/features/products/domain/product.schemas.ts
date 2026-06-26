@@ -13,9 +13,11 @@ import type {
 } from "./product.types";
 
 const nonNegativeNumberSchema = z
-  .number()
-  .finite("Podaj prawidłową liczbę.")
-  .min(0, "Wartość nie może być ujemna.");
+  .number({
+    error: "Podaj wartość.",
+  })
+  .finite("Podaj liczbę.")
+  .min(0, "Nie może być ujemne.");
 
 const optionalNonNegativeNumberSchema = nonNegativeNumberSchema.optional();
 
@@ -50,7 +52,7 @@ export const nutritionPer100Schema = z
       context.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["saturatedFats"],
-        message: "Tłuszcze nasycone nie mogą być większe niż tłuszcze.",
+        message: "Nasycone nie mogą być większe niż tłuszcze.",
       });
     }
   });
@@ -59,24 +61,28 @@ export const productFormSchema = z.object({
   name: z
     .string()
     .trim()
-    .min(2, "Nazwa produktu musi mieć minimum 2 znaki.")
-    .max(120, "Nazwa produktu może mieć maksymalnie 120 znaków."),
+    .min(2, "Podaj nazwę min. 2 znaki.")
+    .max(120, "Nazwa jest za długa."),
 
   brand: z
     .string()
     .trim()
-    .max(80, "Marka może mieć maksymalnie 80 znaków."),
+    .max(80, "Marka jest za długa."),
 
-  category: z.enum(PRODUCT_CATEGORIES),
+  category: z.enum(PRODUCT_CATEGORIES, {
+    error: "Wybierz kategorię.",
+  }),
 
-  nutritionBasis: z.enum(NUTRITION_BASES),
+  nutritionBasis: z.enum(NUTRITION_BASES, {
+    error: "Wybierz jednostkę.",
+  }),
 
   nutritionPer100: nutritionPer100Schema,
 
   note: z
     .string()
     .trim()
-    .max(500, "Notatka może mieć maksymalnie 500 znaków."),
+    .max(500, "Notatka jest za długa."),
 
   isFavorite: z.boolean(),
 });

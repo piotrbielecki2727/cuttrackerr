@@ -6,6 +6,14 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    match /users/{userId} {
+      allow read: if isSignedIn()
+        && request.auth.uid == userId;
+
+      allow create, update: if isSignedIn()
+        && request.auth.uid == userId;
+    }
+
     match /products/{productId} {
       // Każdy zalogowany użytkownik może czytać wspólną bazę.
       allow read: if isSignedIn();
@@ -24,6 +32,47 @@ service cloud.firestore {
       // Ulubione są prywatne dla każdego użytkownika.
       allow read, create, update, delete: if isSignedIn()
         && request.auth.uid == userId;
+    }
+
+    match /users/{userId}/mealProductUsage/{usageId} {
+      allow read: if isSignedIn()
+        && request.auth.uid == userId;
+
+      allow create, update: if isSignedIn()
+        && request.auth.uid == userId
+        && request.resource.data.userId == userId
+        && request.resource.data.productId is string
+        && request.resource.data.mealType is string
+        && request.resource.data.useCount is number
+        && request.resource.data.useCount >= 0;
+    }
+
+    match /users/{userId}/preparedMeals/{preparedMealId} {
+      allow read, delete: if isSignedIn()
+        && request.auth.uid == userId;
+
+      allow create, update: if isSignedIn()
+        && request.auth.uid == userId
+        && request.resource.data.userId == userId
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 2
+        && request.resource.data.name.size() <= 80
+        && request.resource.data.items is list
+        && request.resource.data.items.size() >= 1
+        && request.resource.data.items.size() <= 50;
+    }
+
+    match /users/{userId}/bodyMeasurements/{measuredOn} {
+      allow read, delete: if isSignedIn()
+        && request.auth.uid == userId;
+
+      allow create, update: if isSignedIn()
+        && request.auth.uid == userId
+        && request.resource.data.measuredOn == measuredOn
+        && request.resource.data.measurements is map
+        && (!('note' in request.resource.data)
+          || (request.resource.data.note is string
+            && request.resource.data.note.size() <= 500));
     }
 
     match /users/{userId}/settings/nutrition {
@@ -45,7 +94,14 @@ service cloud.firestore {
         && request.resource.data.dateKey == dateKey
         && request.resource.data.waterMl is number
         && request.resource.data.waterMl >= 0
-        && request.resource.data.waterMl <= 50000;
+        && request.resource.data.waterMl <= 50000
+        && (!('stepsGoalCompleted' in request.resource.data)
+          || request.resource.data.stepsGoalCompleted is bool)
+        && (!('trainingDone' in request.resource.data)
+          || request.resource.data.trainingDone is bool)
+        && (!('trainingName' in request.resource.data)
+          || (request.resource.data.trainingName is string
+            && request.resource.data.trainingName.size() <= 80));
     }
 
     match /users/{userId}/nutritionDays/{dateKey}/entries/{entryId} {
@@ -55,7 +111,21 @@ service cloud.firestore {
       allow create: if isSignedIn()
         && request.auth.uid == userId
         && request.resource.data.userId == userId
-        && request.resource.data.dateKey == dateKey;
+        && request.resource.data.dateKey == dateKey
+        && (
+          !('entryType' in request.resource.data)
+          || request.resource.data.entryType == 'product'
+          || (
+            request.resource.data.entryType == 'prepared_meal'
+            && request.resource.data.preparedMealId is string
+            && request.resource.data.preparedMealName is string
+            && request.resource.data.preparedMealName.size() >= 1
+            && request.resource.data.preparedMealName.size() <= 80
+            && request.resource.data.items is list
+            && request.resource.data.items.size() >= 1
+            && request.resource.data.items.size() <= 50
+          )
+        );
 
       allow update: if isSignedIn()
         && request.auth.uid == userId

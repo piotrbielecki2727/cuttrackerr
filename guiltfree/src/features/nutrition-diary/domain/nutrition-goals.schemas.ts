@@ -10,6 +10,7 @@ export const nutritionGoalsSchema = z.object({
   carbohydrates: optionalGoalSchema,
   fats: optionalGoalSchema,
   waterMl: optionalGoalSchema,
+  steps: optionalGoalSchema,
 });
 
 export function parseNutritionGoals(data: unknown): NutritionGoals {

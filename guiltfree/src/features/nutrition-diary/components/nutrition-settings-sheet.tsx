@@ -71,6 +71,13 @@ const GOAL_FIELDS: Array<{
     placeholder: "np. 2500",
     max: 20000,
   },
+  {
+    key: "steps",
+    label: "Kroki",
+    unit: "kroków",
+    placeholder: "np. 10000",
+    max: 100000,
+  },
 ];
 
 function createDraft(goals: NutritionGoals): GoalDraft {
@@ -80,6 +87,7 @@ function createDraft(goals: NutritionGoals): GoalDraft {
     carbohydrates: goals.carbohydrates?.toString() ?? "",
     fats: goals.fats?.toString() ?? "",
     waterMl: goals.waterMl?.toString() ?? "",
+    steps: goals.steps?.toString() ?? "",
   };
 }
 

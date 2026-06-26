@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="GuiltFree">
+  <rect width="512" height="512" fill="#10b981"/>
+  <circle cx="256" cy="256" r="206" fill="#06140c"/>
+  <path d="M176 142v104c0 38 24 65 60 72v58c0 11 9 20 20 20s20-9 20-20v-58c36-7 60-34 60-72V142c0-11-9-20-20-20s-20 9-20 20v104c0 24-14 38-40 38s-40-14-40-38V142c0-11-9-20-20-20s-20 9-20 20Z" fill="#d1fae5"/>
+  <path d="M356 122c11 0 20 9 20 20v234c0 11-9 20-20 20s-20-9-20-20V142c0-11 9-20 20-20Z" fill="#6ee7b7"/>
+  <circle cx="196" cy="142" r="18" fill="#6ee7b7"/>
+  <circle cx="256" cy="142" r="18" fill="#6ee7b7"/>
+</svg>
