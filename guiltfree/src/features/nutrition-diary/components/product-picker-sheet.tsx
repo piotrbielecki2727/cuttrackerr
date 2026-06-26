@@ -110,6 +110,8 @@ export function ProductPickerSheet({
   const [selectedProducts, setSelectedProducts] = useState<
     Record<string, SelectedProductDraft>
   >({});
+  const [isSelectedProductsExpanded, setIsSelectedProductsExpanded] =
+    useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [addingPreparedMealId, setAddingPreparedMealId] = useState<string | null>(
     null,
@@ -285,6 +287,7 @@ export function ProductPickerSheet({
     if (!nextOpen) {
       setSelectedProducts({});
       setError(null);
+      setIsSelectedProductsExpanded(false);
     }
 
     onOpenChange(nextOpen);
@@ -416,6 +419,15 @@ export function ProductPickerSheet({
 
   const selectedCount = selectedDrafts.length;
 
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    const isDesktop = window.matchMedia("(min-width: 768px)").matches;
+    setIsSelectedProductsExpanded(isDesktop);
+  }, [open]);
+
   return (
     <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetContent
@@ -436,7 +448,6 @@ export function ProductPickerSheet({
             <div className="relative">
               <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                autoFocus
                 className="h-12 pl-10 text-base"
                 onChange={(event) => setSearchQuery(event.target.value)}
                 placeholder="Szukaj produktu..."
@@ -568,14 +579,35 @@ export function ProductPickerSheet({
 
         <SheetFooter className="border-t bg-popover px-4 pt-4">
           <div className="mb-2 flex items-center justify-between gap-3 text-sm">
-            <span className="text-muted-foreground">
-              Zaznaczone produkty
-            </span>
-            <span className="font-semibold tabular-nums">{selectedCount}</span>
+            <button
+              className="flex min-w-0 items-center gap-2 text-left md:cursor-default"
+              onClick={() => setIsSelectedProductsExpanded((currentValue) => !currentValue)}
+              type="button"
+            >
+              <span className="truncate text-muted-foreground">
+                Zaznaczone produkty
+              </span>
+              <span className="font-semibold tabular-nums">{selectedCount}</span>
+            </button>
+
+            <Button
+              className="md:hidden"
+              onClick={() => setIsSelectedProductsExpanded((currentValue) => !currentValue)}
+              size="sm"
+              type="button"
+              variant="ghost"
+            >
+              {isSelectedProductsExpanded ? "Ukryj" : "Pokaż"}
+            </Button>
           </div>
 
           {selectedDrafts.length > 0 && (
-            <div className="mb-3 max-h-52 space-y-2 overflow-y-auto pr-1">
+            <div
+              className={cn(
+                "mb-3 space-y-2 overflow-y-auto pr-1 md:block md:max-h-52",
+                isSelectedProductsExpanded ? "block max-h-52" : "hidden",
+              )}
+            >
               {selectedDrafts.map((draft) => {
                 const unit =
                   draft.product.nutritionBasis === "per_100ml" ? "ml" : "g";

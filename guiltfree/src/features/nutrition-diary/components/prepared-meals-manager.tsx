@@ -468,9 +468,9 @@ export function PreparedMealsManager({ userId }: PreparedMealsManagerProps) {
   }
 
   return (
-    <main className="min-h-dvh bg-[linear-gradient(180deg,var(--dashboard-tint)_0%,var(--background)_28rem)]">
-      <div className="mx-auto grid w-full max-w-[1500px] gap-5 px-4 py-5 sm:px-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(420px,0.8fr)]">
-        <section>
+    <main className="min-h-dvh overflow-x-hidden bg-[linear-gradient(180deg,var(--dashboard-tint)_0%,var(--background)_28rem)]">
+      <div className="mx-auto grid w-full max-w-[1500px] grid-cols-1 gap-5 px-4 py-5 sm:px-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(420px,0.8fr)]">
+        <section className="min-w-0">
           <div className="mb-5">
             <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300">
               Twoja baza
@@ -522,71 +522,82 @@ export function PreparedMealsManager({ userId }: PreparedMealsManagerProps) {
                     key={meal.id}
                   >
                     <CardContent className="p-4">
-                      <div className="flex items-start gap-3">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
                         <div className="min-w-0 flex-1">
                           <h2 className="truncate font-semibold">{meal.name}</h2>
                           <p className="mt-1 text-xs text-muted-foreground">
                             {meal.items.length} produktów
                           </p>
                         </div>
-                        <Button
-                          aria-label={`Duplikuj ${meal.name}`}
-                          className="size-9"
-                          onClick={() => duplicateMeal(meal)}
-                          size="icon"
-                          variant="outline"
-                        >
-                          <Copy className="size-4" />
-                        </Button>
-                        <Button
-                          aria-label={`Edytuj ${meal.name}`}
-                          className="size-9"
-                          onClick={() => editMeal(meal)}
-                          size="icon"
-                          variant="outline"
-                        >
-                          <Pencil className="size-4" />
-                        </Button>
-                        <Button
-                          aria-label={`Usuń ${meal.name}`}
-                          className="size-9 text-muted-foreground hover:text-destructive"
-                          disabled={deletingMealId === meal.id}
-                          onClick={() => removeMeal(meal.id)}
-                          size="icon"
-                          variant="ghost"
-                        >
-                          {deletingMealId === meal.id ? (
-                            <Loader2 className="size-4 animate-spin" />
-                          ) : (
-                            <Trash2 className="size-4" />
-                          )}
-                        </Button>
+
+                        <div className="flex flex-wrap gap-2 sm:ml-auto sm:justify-end">
+                          <Button
+                            aria-label={`Duplikuj ${meal.name}`}
+                            className="size-9"
+                            onClick={() => duplicateMeal(meal)}
+                            size="icon"
+                            variant="outline"
+                          >
+                            <Copy className="size-4" />
+                          </Button>
+                          <Button
+                            aria-label={`Edytuj ${meal.name}`}
+                            className="size-9"
+                            onClick={() => editMeal(meal)}
+                            size="icon"
+                            variant="outline"
+                          >
+                            <Pencil className="size-4" />
+                          </Button>
+                          <Button
+                            aria-label={`Usuń ${meal.name}`}
+                            className="size-9 text-muted-foreground hover:text-destructive"
+                            disabled={deletingMealId === meal.id}
+                            onClick={() => removeMeal(meal.id)}
+                            size="icon"
+                            variant="ghost"
+                          >
+                            {deletingMealId === meal.id ? (
+                              <Loader2 className="size-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="size-4" />
+                            )}
+                          </Button>
+                        </div>
                       </div>
 
-                      <div className="mt-4 grid grid-cols-4 gap-2 text-center text-sm">
+                      <div className="mt-4 grid grid-cols-2 gap-2 text-center text-sm sm:grid-cols-4">
                         <div>
                           <p className="font-semibold tabular-nums">
                             {formatNutrition(mealNutrition.calories, true)}
                           </p>
-                          <p className="text-[11px] text-muted-foreground">kcal</p>
+                          <p className="text-[11px] text-muted-foreground">
+                            kcal
+                          </p>
                         </div>
                         <div>
                           <p className="font-semibold tabular-nums">
                             {formatNutrition(mealNutrition.protein)}
                           </p>
-                          <p className="text-[11px] text-muted-foreground">białko</p>
+                          <p className="text-[11px] text-muted-foreground">
+                            białko
+                          </p>
                         </div>
                         <div>
                           <p className="font-semibold tabular-nums">
                             {formatNutrition(mealNutrition.carbohydrates)}
                           </p>
-                          <p className="text-[11px] text-muted-foreground">węgle</p>
+                          <p className="text-[11px] text-muted-foreground">
+                            węgle
+                          </p>
                         </div>
                         <div>
                           <p className="font-semibold tabular-nums">
                             {formatNutrition(mealNutrition.fats)}
                           </p>
-                          <p className="text-[11px] text-muted-foreground">tłuszcz</p>
+                          <p className="text-[11px] text-muted-foreground">
+                            tłuszcz
+                          </p>
                         </div>
                       </div>
 
@@ -614,7 +625,7 @@ export function PreparedMealsManager({ userId }: PreparedMealsManagerProps) {
           )}
         </section>
 
-        <aside className="lg:sticky lg:top-20 lg:self-start">
+        <aside className="min-w-0 lg:sticky lg:top-20 lg:self-start">
           <Card>
             <CardContent className="p-4 sm:p-5">
               <div className="mb-5 flex items-start justify-between gap-3">
@@ -776,7 +787,7 @@ export function PreparedMealsManager({ userId }: PreparedMealsManagerProps) {
               )}
 
               <div className="mt-5 rounded-2xl border bg-muted/30 p-3">
-                <div className="grid grid-cols-4 gap-2 text-center text-sm">
+                <div className="grid grid-cols-2 gap-2 text-center text-sm sm:grid-cols-4">
                   <div>
                     <p className="font-semibold tabular-nums">
                       {formatNutrition(summary.calories, true)}
